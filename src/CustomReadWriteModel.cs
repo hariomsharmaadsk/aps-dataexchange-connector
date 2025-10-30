@@ -15,6 +15,7 @@
     using Autodesk.DataExchange.Models;
     using Autodesk.DataExchange.UI.Core.Interfaces;
     using SeverityEnum = Autodesk.DataExchange.UI.Core.Enums.Severity;
+    using Autodesk.DataExchange.ProgressManager.Enums;
 
     class CustomReadWriteModel : BaseReadWriteExchangeModel
     {
@@ -61,6 +62,12 @@
         public async Task GetLatestExchangeDataAsync(GetLatestExchangeDetailsEventArgs arg)
         {
             var exchangeItem = arg.ExchangeItem;
+
+            var cancellationToken = arg.CancellationToken;
+            var progressManager = this.Client.ProgressStepsManager;
+            var fetchExchangeStep = progressManager.GetProgressStep(ProgressStepId.FetchExchange);
+            fetchExchangeStep.SubSteps = 2;
+
             this.Bridge?.SetProgressMessage(DownloadingMessage);
             this.Bridge?.SendNotification($"Downloading '{exchangeItem.Name}'", SeverityEnum.Info, 5000);
 
@@ -100,6 +107,9 @@
                 exchangeIdentifier.ExchangeId,
                 exchangeIdentifier.CollectionId);
 
+            var downloadExchangeDataStep = this.Client.ProgressStepsManager.GetProgressStep(ProgressStepId.DownloadExchangeData);
+            downloadExchangeDataStep?.MarkAsComplete();
+
             Console.WriteLine($"Downloaded geometry: STEP={stepFilePath}, OBJ={objFilePath}");
         }
 
@@ -116,7 +126,13 @@
                 return;
             }
 
+            // Update progress for FetchExchange step
+            var fetchExchangeStep = this.Client.ProgressStepsManager.GetProgressStep(ProgressStepId.FetchExchange);
+            fetchExchangeStep?.UpdateProgress();
+
             ElementDataModel data = await this.GetOrUpdateElementData(exchangeIdentifier, latestRevisionId, revisions, newerRevisions);
+            fetchExchangeStep?.MarkAsComplete();
+
             await this.AnalyzeExchangeElements(data, newerRevisions);
         }
 
@@ -150,7 +166,7 @@
                 var response = await this.Client.GetElementDataModelAsync(exchangeIdentifier);
                 this.currentElementDataModel = response.Value;
                 this.currentRevision = latestRevisionId;
-                data = ElementDataModel.Create(Client);
+                data = this.currentElementDataModel;
                 newerRevisions.Add(latestRevisionId);
             }
             else

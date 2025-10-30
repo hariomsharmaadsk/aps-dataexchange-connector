@@ -34,7 +34,7 @@ namespace SampleConnector
 
         private static readonly Autodesk.GeometryUtilities.MeshAPI.Mesh SampleMeshApiObject = new Autodesk.GeometryUtilities.MeshAPI.Mesh
         {
-            MeshColor = new Color(0.5f, 0.0f, 0.70f, 1.0f),
+            MeshColor = new Color(127, 0, 178, 255),
             Vertices = new List<Vertex>
             {
                 new Vertex(-1, -1, -1),
@@ -48,18 +48,18 @@ namespace SampleConnector
 },
             Faces = new List<Face>
             {
-                new Face { Corners = new List<int> { 0, 2, 1 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 0, 3, 2 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 4, 5, 6 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 4, 6, 7 }, FaceColor = new Color(0.0f, 0.4f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 0, 3, 7 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 0, 7, 4 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 1, 5, 6 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 1, 6, 2 }, FaceColor = new Color(1.0f, 0.3f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 3, 2, 7 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 2, 6, 7 }, FaceColor = new Color(1.0f, 1.0f, 0.1f, 1.0f) },
-                new Face { Corners = new List<int> { 0, 1, 5 }, FaceColor = new Color(1.0f, 1.0f, 1.0f, 1.0f) },
-                new Face { Corners = new List<int> { 0, 5, 4 }, FaceColor = new Color(1.0f, 1.0f, 0.8f, 1.0f) }
+                new Face { Corners = new List<int> { 0, 2, 1 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 0, 3, 2 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 4, 5, 6 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 4, 6, 7 }, FaceColor = new Color(0, 102, 255, 255) },
+                new Face { Corners = new List<int> { 0, 3, 7 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 0, 7, 4 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 1, 5, 6 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 1, 6, 2 }, FaceColor = new Color(255, 76, 255, 255) },
+                new Face { Corners = new List<int> { 3, 2, 7 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 2, 6, 7 }, FaceColor = new Color(255, 255, 25, 255) },
+                new Face { Corners = new List<int> { 0, 1, 5 }, FaceColor = new Color(255, 255, 255, 255) },
+                new Face { Corners = new List<int> { 0, 5, 4 }, FaceColor = new Color(255, 255, 204, 255) }
 
             }
         };
@@ -170,7 +170,7 @@ namespace SampleConnector
 
             var newBRepElementGeometry = new List<ElementGeometry>();
 
-            CurveSet setOfLines = new CurveSet();
+            GeometryContainer setOfLines = new GeometryContainer();
 
             Line lineone = new Line(new Point3d { X = 200, Y = 200, Z = 200 }, new Vector3d { X = 100, Y = 400, Z = 300 });
             ParamRange range = new ParamRange
@@ -180,7 +180,7 @@ namespace SampleConnector
                 Type = ParamRange.RangeType.Finite
             };
             lineone.Range = range;
-            setOfLines.Add(lineone);
+            setOfLines.Curves.Add(lineone);
 
             newBRepElementGeometry.Add(ElementDataModel.CreatePrimitiveGeometry(new GeometryProperties(setOfLines, commonRenderStyle)));
             data.SetElementGeometry(newElement, newBRepElementGeometry);
@@ -189,17 +189,17 @@ namespace SampleConnector
 
             var newlineElementGeometry = new List<ElementGeometry>();
 
-            CurveSet settwoOfLines = new CurveSet();
+            GeometryContainer settwoOfLines = new GeometryContainer();
             Line linetwo = new Line(new Point3d { X = -53.34, Y = 10.16, Z = 220.98 }, new Vector3d { X = 0, Y = 0, Z = -30.48 });
 
             linetwo.Range = range;
-            settwoOfLines.Add(linetwo);
+            settwoOfLines.Curves.Add(linetwo);
 
-            CurveSet setthreeOfLines = new CurveSet();
+            GeometryContainer setthreeOfLines = new GeometryContainer();
             Line linethree = new Line(new Point3d { X = -53.34, Y = 10.16, Z = 220.98 }, new Vector3d { X = 30.48, Y = 5.7, Z = 0 });
 
             linethree.Range = range;
-            setthreeOfLines.Add(linethree);
+            setthreeOfLines.Curves.Add(linethree);
 
             newlineElementGeometry.Add(ElementDataModel.CreatePrimitiveGeometry(new GeometryProperties(settwoOfLines, commonRenderStyle)));
             newlineElementGeometry.Add(ElementDataModel.CreatePrimitiveGeometry(new GeometryProperties(setthreeOfLines, commonRenderStyle)));
@@ -388,7 +388,7 @@ namespace SampleConnector
 
             var meshObjWithColor = new Autodesk.GeometryUtilities.MeshAPI.Mesh()
             {
-                MeshColor = new Color(0.9f, 0.2f, 0.2f, 1.0f),  // mesh body color
+                MeshColor = new Color(229, 51, 51, 255),  // mesh body color
                 Vertices = new List<Vertex>
                         {
                             new Vertex(0.0, 0.0, 0.0),
@@ -407,7 +407,7 @@ namespace SampleConnector
                                     new Normal(0, 0, 1),
                                     new Normal(0, 0, 1),
                                 },
-                                FaceColor = new Color(0.2f, 0.2f, 0.9f, 1.0f),  // face color
+                                FaceColor = new Color(51, 51, 229, 255),  // face color
                             },
                             new Face()
                             {
@@ -418,14 +418,14 @@ namespace SampleConnector
                                     new Normal(0, 0, 1),
                                     new Normal(0, 0, 1),
                                 },
-                                FaceColor = new Color(0.2f, 0.9f, 0.2f, 1.0f),  // face color
+                                FaceColor = new Color(51, 229, 51, 255),  // face color
                             },
                         },
             };
 
             var complexMesh = new Autodesk.GeometryUtilities.MeshAPI.Mesh()
             {
-                MeshColor = new Color(0.5f, 0.5f, 0.5f, 1.0f),  // mesh body color
+                MeshColor = new Color(127, 127, 127, 255),  // mesh body color
                 Vertices = new List<Vertex>
                 {
                     new Vertex(0.0, 0.0, 0.0),
@@ -449,7 +449,7 @@ namespace SampleConnector
                             new Normal(0, 0, 1),
                             new Normal(0, 0, 1),
                         },
-                        FaceColor = new Color(0.2f, 0.2f, 0.9f, 1.0f),  // face color
+                        FaceColor = new Color(51, 51, 229, 255),  // face color
                     },
                     new Face()
                     {
@@ -460,7 +460,7 @@ namespace SampleConnector
                             new Normal(0, 0, 1),
                             new Normal(0, 0, 1),
                         },
-                        FaceColor = new Color(0.2f, 0.9f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(51, 229, 51, 255),  // face color
                     },
                     new Face()
                     {
@@ -471,7 +471,7 @@ namespace SampleConnector
                             new Normal(0, 1, 0),
                             new Normal(0, 1, 0),
                         },
-                        FaceColor = new Color(0.9f, 0.2f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(229, 51, 51, 255),  // face color
                     },
                     new Face()
                     {
@@ -482,7 +482,7 @@ namespace SampleConnector
                             new Normal(0, 1, 0),
                             new Normal(0, 1, 0),
                         },
-                        FaceColor = new Color(0.9f, 0.2f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(229, 51, 51, 255),  // face color
                     },
                     new Face()
                     {
@@ -493,7 +493,7 @@ namespace SampleConnector
                             new Normal(1, 0, 0),
                             new Normal(1, 0, 0),
                         },
-                        FaceColor = new Color(0.2f, 0.9f, 0.9f, 1.0f),  // face color
+                        FaceColor = new Color(51, 229, 229, 255),  // face color
                     },
                     new Face()
                     {
@@ -504,7 +504,7 @@ namespace SampleConnector
                             new Normal(1, 0, 0),
                             new Normal(1, 0, 0),
                         },
-                        FaceColor = new Color(0.2f, 0.9f, 0.9f, 1.0f),  // face color
+                        FaceColor = new Color(51, 229, 229, 255),  // face color
                     },
                     new Face()
                     {
@@ -515,7 +515,7 @@ namespace SampleConnector
                             new Normal(0, -1, 0),
                             new Normal(0, -1, 0),
                         },
-                        FaceColor = new Color(0.9f, 0.9f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(229, 229, 51, 255),  // face color
                     },
                     new Face()
                     {
@@ -526,7 +526,7 @@ namespace SampleConnector
                             new Normal(0, -1, 0),
                             new Normal(0, -1, 0),
                         },
-                        FaceColor = new Color(0.9f, 0.9f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(229, 229, 51, 255),  // face color
                     },
                     new Face()
                     {
@@ -537,7 +537,7 @@ namespace SampleConnector
                             new Normal(-1, 0, 0),
                             new Normal(-1, 0, 0),
                         },
-                        FaceColor = new Color(0.9f, 0.2f, 0.9f, 1.0f),  // face color
+                        FaceColor = new Color(229, 51, 229, 255),  // face color
                     },
                     new Face()
                     {
@@ -548,7 +548,7 @@ namespace SampleConnector
                             new Normal(-1, 0, 0),
                             new Normal(-1, 0, 0),
                         },
-                        FaceColor = new Color(0.9f, 0.2f, 0.9f, 1.0f),  // face color
+                        FaceColor = new Color(229, 51, 229, 255),  // face color
                     },
                     new Face()
                     {
@@ -559,7 +559,7 @@ namespace SampleConnector
                             new Normal(0, 0, -1),
                             new Normal(0, 0, -1),
                         },
-                        FaceColor = new Color(0.2f, 0.2f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(51, 51, 51, 255),  // face color
                     },
                     new Face()
                     {
@@ -570,7 +570,7 @@ namespace SampleConnector
                             new Normal(0, 0, -1),
                             new Normal(0, 0, -1),
                         },
-                        FaceColor = new Color(0.2f, 0.2f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(51, 51, 51, 255),  // face color
                     },
                     new Face()
                     {
@@ -581,7 +581,7 @@ namespace SampleConnector
                             new Normal(0, 0, 1),
                             new Normal(0, 0, 1),
                         },
-                        FaceColor = new Color(0.5f, 0.5f, 0.5f, 1.0f),  // face color
+                        FaceColor = new Color(127, 127, 127, 255),  // face color
                     },
                     new Face()
                     {
@@ -592,7 +592,7 @@ namespace SampleConnector
                             new Normal(0, 0, 1),
                             new Normal(0, 0, 1),
                         },
-                        FaceColor = new Color(0.5f, 0.5f, 0.5f, 1.0f),  // face color
+                        FaceColor = new Color(127, 127, 127, 255),  // face color
                     },
                     new Face()
                     {
@@ -603,7 +603,7 @@ namespace SampleConnector
                             new Normal(0, 0, 1),
                             new Normal(0, 0, 1),
                         },
-                        FaceColor = new Color(0.5f, 0.5f, 0.5f, 1.0f),  // face color
+                        FaceColor = new Color(127, 127, 127, 255),  // face color
                     },
                 },
             };
@@ -630,7 +630,7 @@ namespace SampleConnector
 
             var meshObjWithColor = new Autodesk.GeometryUtilities.MeshAPI.Mesh()
             {
-                MeshColor = new Color(0.9f, 0.9f, 0.9f, 1.0f),  // mesh body color
+                MeshColor = new Color(229, 229, 229, 255),  // mesh body color
                 Vertices = new List<Vertex>
                 {
                     new Vertex(0.0, 0.0, 0.0),
@@ -649,7 +649,7 @@ namespace SampleConnector
                             new Normal(0, 0, 1),
                             new Normal(0, 0, 1),
                         },
-                        FaceColor = new Color(0.2f, 0.2f, 0.9f, 1.0f),  // face color
+                        FaceColor = new Color(51, 51, 229, 255),  // face color
                     },
                     new Face()
                     {
@@ -660,7 +660,7 @@ namespace SampleConnector
                             new Normal(0, 0, 1),
                             new Normal(0, 0, 1),
                         },
-                        FaceColor = new Color(0.9f, 0.9f, 0.2f, 1.0f),  // face color
+                        FaceColor = new Color(229, 229, 51, 255),  // face color
                     },
                 },
             };
