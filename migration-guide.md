@@ -1,519 +1,414 @@
 # DataExchange Connector Migration Guide
-## From 6.2.0 to 6.3.0
+## From 6.3.0 to 7.1.0
 
-### 🔄 Migration Guide: SDK 6.3.0 Upgrade
+### 🔄 Migration Guide: SDK 7.1.0 Upgrade
 
-This section documents the migration from SDK 6.2.0 to **Autodesk Data Exchange SDK 6.3.0**.
+This section documents the migration from SDK 6.3.0 to **Autodesk Data Exchange SDK 7.1.0**.
 
 ### 📋 Overview of Changes
 
-This upgrade includes important API improvements and refinements:
+This is a major upgrade that includes significant API improvements, project modernization, and enhanced configuration requirements:
 
-- **SDK Version**: Upgraded to `Autodesk.DataExchange 6.3.0`
-- **SDK Version**: Upgraded to `Autodesk.DataExchange.UI 6.3.0`
-- **Enhanced API Methods**: Refined method signatures for better type safety
-- **API Cleanup**: Removed deprecated classes and streamlined geometry handling
+- **SDK Version**: Upgraded to `Autodesk.DataExchange 7.1.0`
+- **SDK Version**: Upgraded to `Autodesk.DataExchange.UI 7.1.0`
+- **Project Modernization**: Migration from `packages.config` to PackageReference format
+- **Enhanced API Methods**: Streamlined geometry creation method signatures
+- **Configuration Requirements**: Several configuration parameters are now mandatory
+- **Authentication Improvements**: Simplified PKCE authentication flow
 
 ### 🚀 Key Dependency Updates
 
 | Package | Previous Version | New Version | Impact |
 |---------|------------------|-------------|---------|
-| `Autodesk.DataExchange` | `6.2.0` | `6.3.0` | **Major** - Core SDK upgrade with API refinements |
+| `Autodesk.DataExchange` | `6.3.0-beta` | `7.1.0` | **Major** - Core SDK upgrade with API streamlining |
+| `Autodesk.DataExchange.UI` | `6.3.0-beta` | `7.1.0` | **Major** - UI SDK upgrade |
 
 ### ⚠️ Breaking Changes
 
-#### 1. MeshAPI.Color() Parameter Type Change
+#### 1. ElementDataModel Geometry Creation API Simplification
 
-**Before (SDK 6.2.0):**
+The geometry creation methods have been simplified by removing the `GeometryProperties` wrapper class.
 
-```csharp
-// Color values were float from 0.0 to 1.0
-MeshAPI.Color(0.5f, 0.75f, 1.0f, 1.0f); // RGBA as floats
-```
-
-**After (SDK 6.3.0):**
+**Before (SDK 6.3.0):**
 
 ```csharp
-// Color values are now int from 0 to 255
-MeshAPI.Color(127, 191, 255, 255); // RGBA as integers
+// File geometry with GeometryProperties wrapper
+ElementDataModel.CreateFileGeometry(new GeometryProperties(filePath, renderStyle));
+
+// Mesh geometry with GeometryProperties wrapper  
+ElementDataModel.CreateMeshGeometry(new GeometryProperties(meshObject, "MeshName"));
+
+// Primitive geometry with GeometryProperties wrapper
+ElementDataModel.CreatePrimitiveGeometry(new GeometryProperties(geometryContainer, renderStyle));
 ```
 
-**Migration Action:** Convert all `MeshAPI.Color()` calls from float values (0.0-1.0) to integer values (0-255). Multiply your float values by 255 and cast to int.
-
-#### 2. CurveSet Removal
-
-**Before (SDK 6.2.0):**
+**After (SDK 7.1.0):**
 
 ```csharp
-// CurveSet class was available for curve operations
-CurveSet curveSet = new CurveSet();
-// ... curve operations
+// File geometry with explicit format parameter
+ElementDataModel.CreateFileGeometry(filePath, GeometryFormat.Step, renderStyle);
+ElementDataModel.CreateFileGeometry(filePath, GeometryFormat.Ifc, renderStyle);
+ElementDataModel.CreateFileGeometry(filePath, GeometryFormat.Obj, renderStyle);
+
+// Mesh geometry with direct parameters
+ElementDataModel.CreateMeshGeometry(meshObject, "MeshName");
+
+// Primitive geometry with direct parameters  
+ElementDataModel.CreatePrimitiveGeometry(geometryContainer, renderStyle);
 ```
 
-**After (SDK 6.3.0):**
+**Migration Action:** Remove all `GeometryProperties` wrapper usage and pass parameters directly to the geometry creation methods. For file geometry, explicitly specify the `GeometryFormat` enum value.
+
+#### 2. Required Configuration Parameters
+
+Several configuration parameters that were previously optional are now **mandatory**.
+
+**Before (SDK 6.3.0):**
+
+```xml
+<!-- These were optional -->
+<add key="ConnectorName" value="My Connector" />           <!-- ❌ Optional -->
+<add key="ConnectorVersion" value="1.0.0" />               <!-- ❌ Optional -->  
+<add key="HostApplicationName" value="My Host App" />       <!-- ❌ Optional -->
+<add key="HostApplicationVersion" value="2.0.0" />         <!-- ❌ Optional -->
+```
+
+**After (SDK 7.1.0):**
+
+```xml
+<!-- These are now required -->
+<add key="ConnectorName" value="My Connector" />           <!-- ✅ Required -->
+<add key="ConnectorVersion" value="1.0.0" />               <!-- ✅ Required -->
+<add key="HostApplicationName" value="My Host App" />       <!-- ✅ Required -->
+<add key="HostApplicationVersion" value="2.0.0" />         <!-- ✅ Required -->
+```
+
+**Migration Action:** Ensure all four configuration parameters (`ConnectorName`, `ConnectorVersion`, `HostApplicationName`, `HostApplicationVersion`) are defined in your App.config files. The application will throw configuration errors if these are missing.
+
+#### 3. Project System Modernization
+
+The project has been modernized from `packages.config` to PackageReference format.
+
+**Before (SDK 6.3.0):**
+
+```xml
+<!-- packages.config file -->
+<packages>
+  <package id="Autodesk.DataExchange" version="6.3.0-beta" targetFramework="net48" />
+  <package id="Autodesk.DataExchange.UI" version="6.3.0-beta" targetFramework="net48" />
+  <!-- Many explicit package references... -->
+</packages>
+
+<!-- .csproj with explicit assembly references -->
+<ItemGroup>
+  <Reference Include="Autodesk.DataExchange">
+    <HintPath>packages\Autodesk.DataExchange.6.3.0-beta\lib\net48\Autodesk.DataExchange.dll</HintPath>
+  </Reference>
+  <!-- Many explicit assembly references... -->
+</ItemGroup>
+```
+
+**After (SDK 7.1.0):**
+
+```xml
+<!-- No packages.config file needed -->
+
+<!-- .csproj with PackageReference -->
+<ItemGroup>
+  <PackageReference Include="Autodesk.DataExchange" Version="7.1.0">
+    <IncludeAssets>all</IncludeAssets>
+    <ExcludeAssets>runtime; build; native; contentfiles; analyzers</ExcludeAssets>
+  </PackageReference>
+  <PackageReference Include="Autodesk.DataExchange.UI" Version="7.1.0" />
+  <!-- Dependencies resolved automatically -->
+</ItemGroup>
+```
+
+**Migration Action:** Delete `packages.config` files and convert explicit assembly references to PackageReference format in your .csproj files.
+
+#### 4. Authentication and Initialization Changes
+
+The client initialization and authentication flow has been simplified, particularly for PKCE authentication.
+
+**Before (SDK 6.3.0):**
 
 ```csharp
-// CurveSet has been removed - use GeometryContainer instead
-GeometryContainer geometryContainer = new GeometryContainer();
-// ... geometry operations
+// Complex initialization with potential client secret
+this.sdkOptions = new SDKOptionsDefaultSetup()
+{
+    CallBack = authCallback,
+    ClientId = authClientId,
+    ClientSecret = authClientSecret,  // May have been used
+    ConnectorName = connectorName,
+    ConnectorVersion = connectorVersion,
+    HostApplicationName = hostApplicationName,
+    HostApplicationVersion = hostApplicationVersion,
+};
+
+// Basic configuration validation
+var client = new Autodesk.DataExchange.Client(this.sdkOptions);
 ```
 
-**Migration Action:** Replace all `CurveSet` usage with `GeometryContainer`. Update your curve handling logic to use the `GeometryContainer` API.
+**After (SDK 7.1.0):**
+
+```csharp
+// Enhanced validation for required parameters
+if (string.IsNullOrEmpty(authClientId))
+{
+    throw new ConfigurationErrorsException("AuthClientId is missing from App.config.");
+}
+
+if (string.IsNullOrEmpty(authCallback))
+{
+    throw new ConfigurationErrorsException("AuthCallback is missing from App.config.");
+}
+
+if (!authCallback.EndsWith("/"))
+{
+    throw new ConfigurationErrorsException("AuthCallback URL must end with a trailing slash '/'.");
+}
+
+if (string.IsNullOrEmpty(connectorName) || string.IsNullOrEmpty(connectorVersion) ||
+    string.IsNullOrEmpty(hostApplicationName) || string.IsNullOrEmpty(hostApplicationVersion))
+{
+    throw new ConfigurationErrorsException("ConnectorName, ConnectorVersion, HostApplicationName, and HostApplicationVersion are required in App.config.");
+}
+
+// PKCE flow - no client secret needed
+this.sdkOptions = new SDKOptionsDefaultSetup()
+{
+    CallBack = authCallback,
+    ClientId = authClientId,
+    // ClientSecret removed for PKCE flow
+    ConnectorName = connectorName,
+    ConnectorVersion = connectorVersion,
+    HostApplicationName = hostApplicationName,
+    HostApplicationVersion = hostApplicationVersion,
+};
+
+this.client = new Client(this.sdkOptions);
+```
+
+**Migration Action:** Remove `ClientSecret` usage for PKCE authentication and add comprehensive configuration validation as shown above.
 
 ### 🔧 Migration Steps
 
 #### Step 1: Update Package References
 
-Update your `packages.config` or project file:
+**For existing projects using packages.config:**
+
+1. Delete the `packages.config` file
+2. Remove all explicit assembly references from your .csproj file
+3. Add PackageReference entries:
 
 ```xml
-<package id="Autodesk.DataExchange" version="6.3.0" targetFramework="net48" />
+<ItemGroup>
+  <PackageReference Include="Autodesk.DataExchange" Version="7.1.0">
+    <IncludeAssets>all</IncludeAssets>
+    <ExcludeAssets>runtime; build; native; contentfiles; analyzers</ExcludeAssets>
+  </PackageReference>
+  <PackageReference Include="Autodesk.DataExchange.UI" Version="7.1.0" />
+</ItemGroup>
 ```
 
-#### Step 2: Update MeshAPI.Color() Calls
+#### Step 2: Update Required Configuration
 
-Search and replace all `MeshAPI.Color()` calls to use integer values:
+Ensure your App.config files contain all required settings:
+
+```xml
+<configuration>
+  <appSettings>
+    <add key="AuthClientId" value="YOUR_CLIENT_ID" />
+    <add key="AuthCallback" value="http://127.0.0.1:63212/" />
+    
+    <!-- These are now REQUIRED -->
+    <add key="ConnectorName" value="Your Connector Name" />
+    <add key="ConnectorVersion" value="1.0.0" />
+    <add key="HostApplicationName" value="Your Host Application" />
+    <add key="HostApplicationVersion" value="2.0.0" />
+    
+    <!-- Optional -->
+    <add key="LogLevel" value="Info" />
+  </appSettings>
+</configuration>
+```
+
+#### Step 3: Update Geometry Creation Calls
+
+Replace all `GeometryProperties` wrapper usage:
 
 ```csharp
-// OLD: Float values (0.0 - 1.0)
-MeshAPI.Color(0.5f, 0.75f, 1.0f, 1.0f);
+// OLD: Using GeometryProperties wrapper
+ElementDataModel.CreateFileGeometry(new GeometryProperties(filePath, CommonRenderStyle))
+ElementDataModel.CreateMeshGeometry(new GeometryProperties(meshObject, "MeshName"))
+ElementDataModel.CreatePrimitiveGeometry(new GeometryProperties(geomContainer, commonRenderStyle))
 
-// NEW: Integer values (0 - 255)
-MeshAPI.Color(127, 191, 255, 255);
-
-// Conversion formula: intValue = (int)(floatValue * 255)
+// NEW: Direct parameter passing
+ElementDataModel.CreateFileGeometry(filePath, GeometryFormat.Step, CommonRenderStyle)
+ElementDataModel.CreateMeshGeometry(meshObject, "MeshName")
+ElementDataModel.CreatePrimitiveGeometry(geomContainer, commonRenderStyle)
 ```
 
-#### Step 3: Replace CurveSet with GeometryContainer
+**File format mapping:**
+- `.stp` or `.step` files → `GeometryFormat.Step`
+- `.ifc` files → `GeometryFormat.Ifc`  
+- `.obj` files → `GeometryFormat.Obj`
 
-Search for all `CurveSet` usage and replace with `GeometryContainer`:
+#### Step 4: Update Client Initialization
+
+Add comprehensive configuration validation:
 
 ```csharp
-// OLD: Using CurveSet
-CurveSet curveSet = new CurveSet();
-// curve operations...
-// NEW: Using GeometryContainer
-GeometryContainer geometryContainer = new GeometryContainer();
-// geometry operations...
+private void InitializeConnector()
+{
+    // Read configuration
+    var authClientId = ConfigurationManager.AppSettings["AuthClientId"];
+    var authCallback = ConfigurationManager.AppSettings["AuthCallback"];
+    var connectorName = ConfigurationManager.AppSettings["ConnectorName"];
+    var connectorVersion = ConfigurationManager.AppSettings["ConnectorVersion"];
+    var hostApplicationName = ConfigurationManager.AppSettings["HostApplicationName"];
+    var hostApplicationVersion = ConfigurationManager.AppSettings["HostApplicationVersion"];
+
+    // Validate required configuration
+    if (string.IsNullOrEmpty(authClientId))
+    {
+        throw new ConfigurationErrorsException("AuthClientId is missing from App.config. Please ensure the config file is properly configured.");
+    }
+
+    if (string.IsNullOrEmpty(authCallback))
+    {
+        throw new ConfigurationErrorsException("AuthCallback is missing from App.config. Please ensure the config file is properly configured.");
+    }
+
+    if (!authCallback.EndsWith("/"))
+    {
+        throw new ConfigurationErrorsException("AuthCallback URL must end with a trailing slash '/'. Example: http://127.0.0.1:63212/");
+    }
+
+    if (string.IsNullOrEmpty(connectorName) || string.IsNullOrEmpty(connectorVersion) ||
+        string.IsNullOrEmpty(hostApplicationName) || string.IsNullOrEmpty(hostApplicationVersion))
+    {
+        throw new ConfigurationErrorsException("ConnectorName, ConnectorVersion, HostApplicationName, and HostApplicationVersion are required in App.config.");
+    }
+
+    // Create SDK options (PKCE flow - no client secret)
+    this.sdkOptions = new SDKOptionsDefaultSetup()
+    {
+        CallBack = authCallback,
+        ClientId = authClientId,
+        ConnectorName = connectorName,
+        ConnectorVersion = connectorVersion,
+        HostApplicationName = hostApplicationName,
+        HostApplicationVersion = hostApplicationVersion,
+    };
+
+    // Create the Client
+    this.client = new Client(this.sdkOptions);
+    
+    // Rest of initialization...
+}
 ```
 
-#### Step 4: Test Your Changes
+#### Step 5: Test Your Changes
 
-Run your application and verify that all geometry rendering and curve operations work correctly with the new APIs.
+1. Build the project and resolve any compilation errors
+2. Run the application and verify authentication works correctly
+3. Test geometry creation operations to ensure they work with the new API
+4. Verify that all required configuration parameters are being validated properly
 
 ### 🎯 New Features & Improvements
 
-#### Enhanced Type Safety
-- Integer-based color values provide more intuitive and precise color control
-- Clearer API contracts with strongly-typed parameters
-- Reduced ambiguity in color value ranges
+#### Simplified Geometry API
+- **Direct Parameter Passing**: Removed the need for `GeometryProperties` wrapper class
+- **Explicit Format Specification**: Clear specification of file geometry formats
+- **Reduced Boilerplate**: Less code required for geometry creation operations
+- **Better Type Safety**: Compile-time validation of geometry format parameters
 
-#### Streamlined Geometry API
-- Unified geometry handling through `GeometryContainer`
-- Simplified API surface with removal of deprecated classes
-- More consistent geometry operation patterns
+#### Enhanced Configuration Management
+- **Mandatory Parameters**: Important connector metadata is now required
+- **Better Validation**: Comprehensive validation with helpful error messages
+- **PKCE Authentication**: Simplified OAuth2 flow without client secrets
+- **Improved Error Handling**: Clear configuration error messages
+
+#### Modern Project System
+- **PackageReference Format**: Modern NuGet package management
+- **Automatic Dependency Resolution**: No need to manually manage transitive dependencies
+- **Simplified Project Files**: Cleaner, more maintainable project structure
+- **Better Tooling Support**: Enhanced Visual Studio and build system integration
 
 #### Performance & Reliability
-- Optimized color processing with integer operations
-- Improved memory efficiency in geometry operations
-- Better API consistency across the SDK
+- **Streamlined API**: Reduced object allocation in geometry operations
+- **Enhanced Authentication Flow**: More robust PKCE implementation
+- **Better Error Messages**: More descriptive error messages for troubleshooting
+- **Improved Validation**: Proactive validation prevents runtime issues
 
-## From 5.2.4 to 6.2.0
+### 🚨 Common Migration Issues
 
-### Table of Contents
-1. [Introduction](#introduction)
-2. [Prerequisites](#prerequisites)
-3. [Key Changes](#key-changes)
-4. [Migration Steps](#migration-steps)
-5. [Code Examples](#code-examples)
-6. [Common Pitfalls](#common-pitfalls)
-7. [Conclusion](#conclusion)
+#### 1. **Configuration Errors on Startup**
+**Problem:** Application fails to start with configuration errors
+```csharp
+// ❌ This will cause startup failure
+ConfigurationErrorsException: "ConnectorName, ConnectorVersion, HostApplicationName, and HostApplicationVersion are required in App.config."
+```
+**Solution:** Add all required configuration parameters to your App.config
+```xml
+<!-- ✅ Add these required settings -->
+<add key="ConnectorName" value="Your Connector Name" />
+<add key="ConnectorVersion" value="1.0.0" />
+<add key="HostApplicationName" value="Your Host Application" />
+<add key="HostApplicationVersion" value="2.0.0" />
+```
 
----
+#### 2. **GeometryProperties Compilation Errors**
+**Problem:** Compilation errors due to removed `GeometryProperties` class
+```csharp
+// ❌ This will cause compilation error in 7.1.0
+ElementDataModel.CreateFileGeometry(new GeometryProperties(filePath, style));
+```
+**Solution:** Use direct parameter passing
+```csharp
+// ✅ Correct approach
+ElementDataModel.CreateFileGeometry(filePath, GeometryFormat.Step, style);
+```
 
-## Introduction
+#### 3. **PackageReference Migration Issues**
+**Problem:** Build errors due to conflicting package management approaches
+```xml
+<!-- ❌ Don't mix packages.config with PackageReference -->
+<packages>
+  <package id="Autodesk.DataExchange" version="6.3.0-beta" />
+</packages>
+<!-- AND -->
+<PackageReference Include="Autodesk.DataExchange" Version="7.1.0" />
+```
+**Solution:** Use only PackageReference approach
+```xml
+<!-- ✅ Use only PackageReference -->
+<PackageReference Include="Autodesk.DataExchange" Version="7.1.0" />
+```
 
-This migration guide assists developers in updating their DataExchange Connector codebase from version 5.2.4 to 6.2.0. The primary change involves transitioning from direct `ExchangeData` usage to using `ElementDataModel` as the primary interface for all data exchange operations.
+#### 4. **Authentication Callback URL Format**
+**Problem:** Authentication fails due to incorrect callback URL format
+```csharp
+// ❌ Missing trailing slash
+<add key="AuthCallback" value="http://127.0.0.1:63212" />
+```
+**Solution:** Ensure callback URL ends with trailing slash
+```csharp
+// ✅ Correct format with trailing slash
+<add key="AuthCallback" value="http://127.0.0.1:63212/" />
+```
 
-**Important:** The `ExchangeData` class is now reserved for internal use only in version 6.2.0. All external interactions should use `ElementDataModel` which provides a more robust and feature-rich API.
+### 📚 Additional Resources
 
-For comprehensive details beyond this migration guide, please refer to:
 - [APS DataExchange SDK Documentation](https://aps.autodesk.com/en/docs/dx-sdk/v1/developers_guide/overview/)
 - [APS DataExchange Release Notes](https://aps.autodesk.com/en/docs/dx-sdk/v1/developers_guide/release_notes/)
 - [Autodesk Platform Services Developer Portal](https://aps.autodesk.com/)
 - [DataExchange API Reference](https://aps.autodesk.com/en/docs/dx-sdk/v1/reference/)
-
----
-
-## Prerequisites
-
-Before starting the migration, ensure you have:
-
-1. **Access to both codebases:**
-   - Current implementation (version 5.2.4)
-   - Target implementation (version 6.2.0)
-
-2. **Updated packages:**
-   - Autodesk.DataExchange version 6.2.0
-   - Autodesk.DataExchange.UI version 6.2.0
-   - All dependent packages updated to compatible versions
-
-3. **Development environment:**
-   - Visual Studio with .NET Framework 4.8
-   - Valid Autodesk Platform Services credentials
-
-4. **Testing capabilities:**
-   - Test data exchange files
-   - Access to Autodesk Construction Cloud (ACC)
-
----
-
-## Key Changes
-
-### Primary Change: ExchangeData → ElementDataModel
-
-The core change is simple: **stop using `ExchangeData` directly and use `ElementDataModel` for everything**.
-
-| Version | Usage Pattern |
-|---------|---------------|
-| **5.2.4** | Mixed: `ExchangeData` + `ElementDataModel` wrapper |
-| **6.2.0** | Single: `ElementDataModel` only |
-
-**What this means:**
-- `ExchangeData` becomes internal-only (you can't access it directly)
-- `ElementDataModel` handles all data operations
-- Simpler, cleaner API with better functionality
-
-### Additional Breaking Changes
-
-1. **Namespace Changes:** Some classes may have moved namespaces
-2. **Method Signatures:** Updated method parameters and return types
-3. **Event Handling:** Modified event subscription patterns
-4. **Error Handling:** Enhanced exception types and error messages
-
----
-
-## Migration Steps
-
-### Step 1: Update Package References
-
-Update your `packages.config` file:
-
-```xml
-<!-- OLD (5.2.4) -->
-<package id="Autodesk.DataExchange" version="5.2.4-beta" targetFramework="net48" />
-<package id="Autodesk.DataExchange.UI" version="5.2.4-beta" targetFramework="net48" />
-
-<!-- NEW (6.2.0) -->
-<package id="Autodesk.DataExchange" version="6.2.0" targetFramework="net48" />
-<package id="Autodesk.DataExchange.UI" version="6.2.0" targetFramework="net48" />
-```
-
-### Step 2: Identify ExchangeData Usage
-
-Search your codebase for the following patterns:
-- `ExchangeData` variable declarations
-- `Client.GetExchangeDataAsync()` calls
-- Direct `ExchangeData` property access
-- `ExchangeData` parameter passing
-
-### Step 3: Replace ExchangeData Variables
-
-**Pattern to find:**
-```csharp
-private ExchangeData currentExchangeData;
-```
-
-**Replace with:**
-```csharp
-private ElementDataModel currentElementDataModel;
-```
-
-### Step 4: Update Data Retrieval Methods
-
-**OLD Method (5.2.4):**
-```csharp
-// Get ExchangeData directly
-currentExchangeData = await Client.GetExchangeDataAsync(exchangeIdentifier);
-
-// Create wrapper
-var data = ElementDataModel.Create(Client, currentExchangeData);
-```
-
-**NEW Method (6.2.0):**
-```csharp
-// Get ElementDataModel directly
-currentElementDataModel = await Client.GetElementDataModelAsync(exchangeIdentifier);
-// OR create new ElementDataModel
-currentElementDataModel = ElementDataModel.Create(Client);
-```
-
-### Step 5: Update Property Access
-
-**OLD Property Access (5.2.4):**
-```csharp
-// Access through ExchangeData
-var exchangeId = currentExchangeData.ExchangeID;
-var identifier = data.ExchangeData.ExchangeIdentifier;
-```
-
-**NEW Property Access (6.2.0):**
-```csharp
-// Access through ElementDataModel
-var exchangeId = currentElementDataModel.ExchangeID;
-var identifier = currentElementDataModel.ExchangeIdentifier;
-```
-
-### Step 6: Update Method Parameters
-
-Replace methods that accept `ExchangeData` parameters:
-
-**OLD Signature (5.2.4):**
-```csharp
-private async Task ProcessExchange(ExchangeData exchangeData)
-{
-    var elementModel = ElementDataModel.Create(Client, exchangeData);
-    // Process data...
-}
-```
-
-**NEW Signature (6.2.0):**
-```csharp
-private async Task ProcessExchange(ElementDataModel elementDataModel)
-{
-    // Process data directly...
-}
-```
-
----
-
-## Code Examples
-
-### Example 1: Data Retrieval and Processing
-
-#### Before (5.2.4):
-```csharp
-public async Task GetLatestExchangeDataAsync(ExchangeItem exchangeItem)
-{
-    var exchangeIdentifier = new DataExchangeIdentifier
-    {
-        CollectionId = exchangeItem.ContainerID,
-        ExchangeId = exchangeItem.ExchangeID,
-        HubId = exchangeItem.HubId,
-    };
-
-    // Get Exchange data
-    currentExchangeData = await Client.GetExchangeDataAsync(exchangeIdentifier);
-    
-    // Use ElementDataModel Wrapper
-    var data = ElementDataModel.Create(Client, currentExchangeData);
-    
-    // Get elements
-    var wallElements = data.Elements.Where(element => element.Category == "Walls").ToList();
-    
-    // Access exchange properties through wrapper
-    var wholeGeometryPath = Client.DownloadCompleteExchangeAsSTEP(data.ExchangeData.ExchangeIdentifier);
-}
-```
-
-#### After (6.2.0):
-```csharp
-public async Task GetLatestExchangeDataAsync(ExchangeItem exchangeItem)
-{
-    var exchangeIdentifier = new DataExchangeIdentifier
-    {
-        CollectionId = exchangeItem.ContainerID,
-        ExchangeId = exchangeItem.ExchangeID,
-        HubId = exchangeItem.HubId,
-    };
-
-    // Get ElementDataModel directly
-    currentElementDataModel = await Client.GetElementDataModelAsync(exchangeIdentifier);
-    
-    // Get elements directly
-    var wallElements = currentElementDataModel.Elements.Where(element => element.Category == "Walls").ToList();
-    
-    // Access exchange properties directly
-    var wholeGeometryPath = Client.DownloadCompleteExchangeAsSTEP(currentElementDataModel.ExchangeIdentifier);
-}
-```
-
-### Example 2: Creating New Exchange
-
-#### Before (5.2.4):
-```csharp
-public async Task CreateNewExchange()
-{
-    // Create a new ElementDataModel wrapper
-    var currentElementDataModel = ElementDataModel.Create(Client);
-
-    // Set Unit info on Root Asset through ExchangeData
-    (currentElementDataModel.ExchangeData.RootAsset as DesignAsset).LengthUnit = UnitFactory.Feet;
-    (currentElementDataModel.ExchangeData.RootAsset as DesignAsset).DisplayLengthUnit = UnitFactory.Feet;
-
-    // Sync using ExchangeData
-    await Client.SyncExchangeDataAsync(exchangeIdentifier, currentElementDataModel.ExchangeData);
-}
-```
-
-#### After (6.2.0):
-```csharp
-public async Task CreateNewExchange()
-{
-    // Create a new ElementDataModel
-    var currentElementDataModel = ElementDataModel.Create(Client);
-
-    // Set Unit info directly through ElementDataModel
-    currentElementDataModel.SetLengthUnit(UnitFactory.Feet);
-    currentElementDataModel.SetDisplayLengthUnit(UnitFactory.Feet);
-
-    // Sync using ElementDataModel
-    await Client.SyncElementDataModelAsync(exchangeIdentifier, currentElementDataModel);
-}
-```
-
-### Example 3: Delta Updates
-
-#### Before (5.2.4):
-```csharp
-public async Task UpdateExchange()
-{
-    // Update Data Exchange data with Delta
-    var newRevision = await Client.RetrieveLatestExchangeDataAsync(currentExchangeData);
-    
-    // Create wrapper on existing ExchangeData
-    var data = ElementDataModel.Create(Client, currentExchangeData);
-    
-    // Process updates...
-}
-```
-
-#### After (6.2.0):
-```csharp
-public async Task UpdateExchange()
-{
-    // Update ElementDataModel with Delta
-    var newRevision = await Client.RetrieveLatestElementDataModelAsync(currentElementDataModel);
-    
-    // Process updates directly on ElementDataModel...
-}
-```
-
----
-
-## Common Pitfalls
-
-### 1. **Direct ExchangeData Access**
-**Problem:** Attempting to access `ExchangeData` properties directly
-```csharp
-// ❌ This will fail in 6.2.0
-var exchangeId = someExchangeData.ExchangeID;
-```
-**Solution:** Use `ElementDataModel` properties
-```csharp
-// ✅ Correct approach
-var exchangeId = elementDataModel.ExchangeID;
-```
-
-### 2. **Attempting to Use ExchangeData (Compilation Error)**
-**Problem:** Trying to use `ExchangeData` which is no longer accessible
-```csharp
-// ❌ This will cause COMPILATION ERROR in 6.2.0
-ExchangeData exchangeData = await Client.GetExchangeDataAsync(identifier);
-ElementDataModel model = ElementDataModel.Create(Client, exchangeData);
-```
-**Solution:** Use `ElementDataModel` directly - it's the only option
-```csharp
-// ✅ Only working pattern in 6.2.0
-ElementDataModel model = await Client.GetElementDataModelAsync(identifier);
-```
-
-### 3. **Deprecated Method Usage**
-**Problem:** Using deprecated methods that return `ExchangeData`
-```csharp
-// ❌ These methods DO NOT EXIST in 6.2.0 - compilation error
-var data = Client.GetExchangeDataSync(identifier);
-var asyncData = await Client.GetExchangeDataAsync(identifier);
-```
-**Solution:** Use only the available `ElementDataModel` methods
-```csharp
-// ✅ Use new methods
-var data = await Client.GetElementDataModelAsync(identifier);
-```
-
-### 4. **Event Handler Updates**
-**Problem:** Event handlers expecting `ExchangeData` parameters
-```csharp
-// ❌ This will cause compilation error - ExchangeData not accessible
-public void OnExchangeUpdated(ExchangeData data) { ... }
-```
-**Solution:** Update to expect `ElementDataModel`
-```csharp
-// ✅ New event signature
-public void OnExchangeUpdated(ElementDataModel model) { ... }
-```
-
-### 5. **Accessing ExchangeData Properties Through ElementDataModel**
-**Problem:** In 5.2.4, you could access `ExchangeData` properties through the `ElementDataModel` wrapper
-```csharp
-// ❌ This pattern worked in 5.2.4 but causes compilation error in 6.2.0
-var elementModel = ElementDataModel.Create(Client, exchangeData);
-var id = elementModel.ExchangeData.ExchangeID;
-var rootAsset = elementModel.ExchangeData.RootAsset;
-```
-**Solution:** Access these properties from the appropriate source objects
-```csharp
-// ✅ Get ExchangeID from ExchangeItem
-var id = exchangeItem.ExchangeID; 
-
-// ✅ Access RootAsset and other properties through ElementDataModel methods
-// (Check ElementDataModel API documentation for available methods)
-```
-
-### 6. **Creating DataExchangeIdentifier**
-**Problem:** Need to create `DataExchangeIdentifier` for API calls but don't know where to get the values
-```csharp
-// ❌ In 5.2.4, you might have tried to get this from ExchangeData
-var identifier = someExchangeData.ExchangeIdentifier; // This property doesn't exist
-```
-**Solution:** Create `DataExchangeIdentifier` manually from `ExchangeItem` properties
-```csharp
-// ✅ Standard pattern used throughout 6.2.0 codebase
-var identifier = new DataExchangeIdentifier
-{
-    ExchangeId = exchangeItem.ExchangeID,
-    CollectionId = exchangeItem.ContainerID,
-    HubId = exchangeItem.HubId,
-};
-```
-
----
-
-## Conclusion
-
-The migration from DataExchange Connector 5.2.4 to 6.2.0 primarily involves transitioning from `ExchangeData` to `ElementDataModel` as the primary interface. This change provides:
-
-- **Simplified API:** Fewer classes to manage
-- **Better Encapsulation:** Internal details hidden from developers
-- **Enhanced Functionality:** More robust methods and properties
-- **Future-Proofing:** Aligned with long-term API evolution
-
-### Next Steps
-
-1. **Complete the Migration:** Follow all steps in this guide systematically
-2. **Test Thoroughly:** Verify all functionality works as expected
-3. **Review Documentation:** Consult the official API documentation for additional features
-4. **Update Dependencies:** Ensure all related packages are compatible with 6.2.0
-5. **Monitor for Updates:** Stay informed about future releases and deprecation notices
-
-### Additional Resources
-
-- [APS DataExchange SDK Documentation](https://aps.autodesk.com/en/docs/dx-sdk-beta/v1/developers_guide/overview/)
-- [Autodesk Platform Services Developer Portal](https://aps.autodesk.com/)
 - [Sample Code Repository](https://github.com/autodesk-platform-services/aps-dataexchange-connector)
 
 For complex migration scenarios or specific technical questions, consult the official release notes and consider reaching out to Autodesk support channels.
 
 ---
 
-*This migration guide provides general guidance for the transition from version 5.2.4 to 6.2.0. Always refer to the official documentation and release notes for the most accurate and up-to-date information.* 
+*This migration guide provides comprehensive guidance for the transition from version 6.3.0 to 7.1.0. Always refer to the official documentation and release notes for the most accurate and up-to-date information.*
